@@ -47,6 +47,8 @@ class DataProvider {
 
     // Contracts
     priceSubmitterWeb3Contract!: PriceSubmitter;
+    // This can be any address (even a proxy)
+    priceSubmitterTargetWeb3Contract!: PriceSubmitter;
     priceSubmitterContract: any;
     ftsoManagerWeb3Contract!: FtsoManager;
     ftsoManagerContract!: Contract;
@@ -246,8 +248,8 @@ class DataProvider {
         if (prices.length > 0) {
             this.logger.info(`Ftso indices: ${ftsoIndices.map(x => x.toString()).toString()}`)
             let hash = priceHash(this.web3, ftsoIndices, prices, random, this.account.address);
-            var fnToEncode = this.priceSubmitterWeb3Contract.methods.submitHash(epochId, hash);
-            await this.signAndFinalize3("Submit prices", this.priceSubmitterWeb3Contract.options.address, fnToEncode, "2500000");
+            var fnToEncode = this.priceSubmitterTargetWeb3Contract.methods.submitHash(epochId, hash);
+            await this.signAndFinalize3("Submit prices", this.priceSubmitterTargetWeb3Contract.options.address, fnToEncode, "2500000");
         }
     }
 
@@ -281,8 +283,8 @@ class DataProvider {
             let prices: string[] = ftsoIndices.map((index: number) => index2price.get(index)!.toString());
 
             if (prices.length > 0) {
-                var fnToEncode = this.priceSubmitterWeb3Contract.methods.revealPrices(epochIdStr, ftsoIndices, prices, random);
-                await this.signAndFinalize3("Reveal prices", this.priceSubmitterWeb3Contract.options.address, fnToEncode, "2500000");
+                var fnToEncode = this.priceSubmitterTargetWeb3Contract.methods.revealPrices(epochIdStr, ftsoIndices, prices, random);
+                await this.signAndFinalize3("Reveal prices", this.priceSubmitterTargetWeb3Contract.options.address, fnToEncode, "2500000");
                 break;
             }
 
@@ -430,6 +432,7 @@ class DataProvider {
         this.account = getWeb3Wallet(this.web3, accountPrivateKey);
 
         this.priceSubmitterWeb3Contract = await getWeb3Contract(this.web3, conf.priceSubmitterContractAddress, "PriceSubmitter");
+        this.priceSubmitterTargetWeb3Contract = await getWeb3Contract(this.web3, conf.priceSubmitterProxyContractAddress, "PriceSubmitter");
         this.priceSubmitterContract = await getContract(this.provider, conf.priceSubmitterContractAddress, "PriceSubmitter");
         this.runExecution();
 

@@ -2,6 +2,7 @@
     "accountPrivateKey": "",
     "rpcUrl": "https://songbird-api.flare.network/ext/bc/C/rpc",
     "priceSubmitterContractAddress": "0x1000000000000000000000000000000000000003",
+    "priceSubmitterProxyContractAddress": "0xb03c4B249e92563d88905F5BBE69669254fcc0e9",
     "submitOffset": 90000,
     "revealOffset": 3000,
     "whitelist": false,

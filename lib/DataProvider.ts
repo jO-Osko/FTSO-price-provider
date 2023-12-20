@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { BigNumber, Contract } from 'ethers';
 import * as fs from 'fs';
 import Web3 from 'web3';
@@ -74,6 +75,8 @@ class DataProvider {
     ex2client: any = {};
 
     data!: DataProviderData[]
+
+    submitted: [number[], string[]] = [[], []];
 
     constructor(conf: any) {
         // we need this provider for usdt/usd pair
@@ -218,6 +221,8 @@ class DataProvider {
         this.currentBitmask = await this.priceSubmitterWeb3Contract.methods.voterWhitelistBitmap(this.account.address).call() as any;
         this.logger.info(`Current bitmask: ${this.currentBitmask.toString(2)}`);
 
+
+
         for (let p of lst) {
             p = p as DataProviderData;
             if (!this.symbol2Index.has(conf.symbolPrefix + p.symbol)) {
@@ -241,13 +246,56 @@ class DataProvider {
         }
 
         let ftsoIndices: number[] = [...index2price.keys()].sort((a: number, b: number) => a - b);
+        let ftsoIndicesReverse: number[] = Array(ftsoIndices.length).fill(-1);
+        for (let i = 0; i < ftsoIndices.length; i++) {
+            ftsoIndicesReverse[ftsoIndices[i]] = i;
+        }
         let prices: string[] = ftsoIndices.map((index: number) => index2price.get(index)!.toString());
+        this.logger.info(ftsoIndices.map(x => x.toString()).toString())
+        let providerData = await axios.get(
+            "https://devt.server.aflabs.net/json_example/" + conf.symbolPrefix + "epoch_" + epochId + ".json",
+            { validateStatus: false } as any
+        )
 
+        const touched: number[] = []
+
+        if (providerData.status == 200) {
+            // const data = JSON.parse('{"testADA": "149","testARB": "150","testALGO": "151","testAVAX": "152","testBNB": "153","testBTC": "154","testDOGE": "155","testETH": "156","testFIL": "157","testLTC": "158","testMATIC": "159","testSOL": "160","testUSDC": "161","testUSDT": "162","testXDC": "163","testXLM": "164","testXRP": "165","C2FLR": "166"} ')
+            const data = providerData.data
+
+            for (let symbol in data) {
+
+                if (!data.hasOwnProperty(symbol)) {
+                    continue;
+                }
+                const touchedInd = ftsoIndicesReverse[this.symbol2Index.get(symbol)]
+                if (touchedInd >= 0) {
+                    touched.push(touchedInd);
+                    prices[touchedInd] = data[symbol]
+                    this.logger.info(`Overriding ${symbol} with ${data[symbol]}`)
+                } else {
+                    this.logger.error(`Symbol ${symbol} not found in index`)
+                }
+            }
+        } else {
+            this.logger.error(`Failed to get provider data for epoch ${epochId}`)
+        }
+
+        this.submitted = (
+            [ftsoIndices, prices]
+        )
+
+        console.log(this.submitted)
         if (prices.length > 0) {
             this.logger.info(`Ftso indices: ${ftsoIndices.map(x => x.toString()).toString()}`)
-            let hash = priceHash(this.web3, ftsoIndices, prices, random, this.account.address);
+            let hash = priceHash(this.web3, ftsoIndices, prices, random, (() => { if (conf.priceSubmitterProxyContractAddress) { return conf.priceSubmitterProxyContractAddress } else { return this.account.address } })());
             var fnToEncode = this.priceSubmitterWeb3Contract.methods.submitHash(epochId, hash);
-            await this.signAndFinalize3("Submit prices", this.priceSubmitterWeb3Contract.options.address, fnToEncode, "2500000");
+            await this.signAndFinalize3("Submit prices", (() => { if (conf.priceSubmitterProxyContractAddress) { return conf.priceSubmitterProxyContractAddress } else { return this.priceSubmitterWeb3Contract.options.address } })(), fnToEncode, "2500000");
+        }
+
+        const notTouched = ftsoIndices.filter(x => !touched.includes(x))
+        if (notTouched.length > 0) {
+            this.logger.error(`Not touched: ${notTouched.toString()}`)
         }
     }
 
@@ -281,8 +329,8 @@ class DataProvider {
             let prices: string[] = ftsoIndices.map((index: number) => index2price.get(index)!.toString());
 
             if (prices.length > 0) {
-                var fnToEncode = this.priceSubmitterWeb3Contract.methods.revealPrices(epochIdStr, ftsoIndices, prices, random);
-                await this.signAndFinalize3("Reveal prices", this.priceSubmitterWeb3Contract.options.address, fnToEncode, "2500000");
+                var fnToEncode = this.priceSubmitterWeb3Contract.methods.revealPrices(epochIdStr, this.submitted[0], this.submitted[1], random);
+                await this.signAndFinalize3("Reveal prices", (() => { if (conf.priceSubmitterProxyContractAddress) { return conf.priceSubmitterProxyContractAddress } else { return this.priceSubmitterWeb3Contract.options.address } })(), fnToEncode, "2500000");
                 break;
             }
 

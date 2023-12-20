@@ -2,6 +2,7 @@
     "accountPrivateKey": "",
     "rpcUrl": "https://coston2-api.flare.network/ext/bc/C/rpc",
     "priceSubmitterContractAddress": "0x1000000000000000000000000000000000000003",
+    "priceSubmitterProxyContractAddress": "0xDF069Afb5FeFA9c0931D868acd597819ccC0f8A2",
     "submitOffset": 90000,
     "revealOffset": 3000,
     "whitelist": false,

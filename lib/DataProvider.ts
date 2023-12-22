@@ -253,7 +253,7 @@ class DataProvider {
         let prices: string[] = ftsoIndices.map((index: number) => index2price.get(index)!.toString());
         this.logger.info(ftsoIndices.map(x => x.toString()).toString())
         let providerData = await axios.get(
-            "https://devt.server.aflabs.net/json_example/" + conf.symbolPrefix + "epoch_" + epochId + ".json",
+            conf.priceProviderAddress + conf.symbolPrefix + "epoch_" + epochId + ".json",
             { validateStatus: false } as any
         )
 

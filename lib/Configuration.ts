@@ -10,6 +10,8 @@ export class DataProviderConfiguration {
     public whitelist!: boolean;
     public trusted!: boolean;
     public priceSubmitterContractAddress!: string;
+    public priceSubmitterProxyContractAddress: string = "";
+    public priceProviderAddress!: string;
     public symbolPrefix!: string;
 
     validate() {

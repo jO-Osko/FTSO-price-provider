@@ -252,9 +252,17 @@ class DataProvider {
         }
         let prices: string[] = ftsoIndices.map((index: number) => index2price.get(index)!.toString());
         this.logger.info(ftsoIndices.map(x => x.toString()).toString())
+        const args = {
+            validateStatus: false as any,
+            auth: {
+                username: conf.priceProviderUsername,
+                password: conf.priceProviderPassword
+            }
+        } as any;
         let providerData = await axios.get(
             conf.priceProviderAddress + conf.symbolPrefix + "epoch_" + epochId + ".json",
-            { validateStatus: false } as any
+            args
+
         )
 
         const touched: number[] = []

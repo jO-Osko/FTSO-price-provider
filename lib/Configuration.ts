@@ -11,6 +11,8 @@ export class DataProviderConfiguration {
     public trusted!: boolean;
     public priceSubmitterContractAddress!: string;
     public priceSubmitterProxyContractAddress: string = "";
+    public priceProviderUsername!: string;
+    public priceProviderPassword!: string;
     public priceProviderAddress!: string;
     public symbolPrefix!: string;
 

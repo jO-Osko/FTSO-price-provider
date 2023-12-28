@@ -260,7 +260,7 @@ class DataProvider {
             }
         } as any;
         let providerData = await axios.get(
-            conf.priceProviderAddress + conf.symbolPrefix + "epoch_" + epochId + ".json",
+            conf.priceProviderAddress + conf.symbolPrefix + epochId + ".json",
             args
 
         )

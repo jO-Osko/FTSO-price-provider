@@ -484,6 +484,7 @@ class DataProvider {
         this.web3 = getWeb3(conf.rpcUrl);
         this.waitFinalize3 = waitFinalize3Factory(this.web3);
         this.account = getWeb3Wallet(this.web3, accountPrivateKey);
+        console.log("SUBMITTER ADDRESS: ", this.account.address);
 
         this.priceSubmitterWeb3Contract = await getWeb3Contract(this.web3, conf.priceSubmitterContractAddress, "PriceSubmitter");
         this.priceSubmitterContract = await getContract(this.provider, conf.priceSubmitterContractAddress, "PriceSubmitter");
